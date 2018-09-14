@@ -54,6 +54,34 @@ func resourceProject() *schema.Resource {
 					},
 				},
 			},
+			"shipping_rate_input_type": {
+				Type:     schema.TypeMap,
+				Optional: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"type": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+						"values": {
+							Type:     schema.TypeList,
+							Required: true,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"key": {
+										Type:     schema.TypeString,
+										Required: true,
+									},
+									"label": {
+										Type:     schema.TypeMap,
+										Required: true,
+									},
+								},
+							},
+						},
+					},
+				},
+			},
 			"version": &schema.Schema{
 				Type:     schema.TypeInt,
 				Computed: true,
@@ -68,7 +96,7 @@ func resourceProjectCreate(d *schema.ResourceData, m interface{}) error {
 }
 
 func resourceProjectRead(d *schema.ResourceData, m interface{}) error {
-	log.Print("[DEBUG] Reading projects from commercetools")
+	log.Print("Reading project from commercetools")
 	svc := getProjectService(m)
 
 	project, err := svc.Get()
@@ -82,7 +110,7 @@ func resourceProjectRead(d *schema.ResourceData, m interface{}) error {
 		return err
 	}
 
-	log.Print("[DEBUG] Found the following project:")
+	log.Print("Found the following project:")
 	log.Print(stringFormatObject(project))
 
 	d.SetId(project.Key)
@@ -91,13 +119,8 @@ func resourceProjectRead(d *schema.ResourceData, m interface{}) error {
 	d.Set("currencies", project.Currencies)
 	d.Set("countries", project.Countries)
 	d.Set("languages", project.Languages)
-	// d.Set("createdAt", project.CreatedAt)
-	// d.Set("trialUntil", project.TrialUntil)
-	log.Print("[DEBUG] Logging messages enabled")
-	log.Print(stringFormatObject(project.Messages))
 	d.Set("messages", project.Messages)
-	log.Print(stringFormatObject(d))
-	// d.Set("shippingRateInputType", project.ShippingRateInputType)
+	d.Set("shippingRateInputType", project.ShippingRateInputType)
 
 	return nil
 }
@@ -148,6 +171,20 @@ func resourceProjectUpdate(d *schema.ResourceData, m interface{}) error {
 			&project.ChangeMessagesEnabled{MessagesEnabled: enabled})
 	}
 
+	if d.HasChange("shipping_rate_input_type") {
+		log.Println("=== SHIPPING ===")
+
+		shippingRateInputType, err := resourceProjectGetShippingRateInputType(d)
+		if err != nil {
+			return err
+		}
+		log.Println(shippingRateInputType)
+
+		input.Actions = append(
+			input.Actions,
+			&project.SetShippingRateInputType{ShippingRateInputType: shippingRateInputType})
+	}
+
 	_, err := svc.Update(input)
 	if err != nil {
 		return err
@@ -175,4 +212,28 @@ func getStringSlice(d *schema.ResourceData, field string) []string {
 	}
 
 	return currencyObjects
+}
+
+func resourceProjectGetShippingRateInputType(d *schema.ResourceData) (project.ShippingRateInputType, error) {
+	inputType := d.Get("shipping_rate_input_type").(map[string]interface{})
+	if inputType != nil {
+		switch inputType["type"] {
+		case "CartValue":
+			return project.CartValue{}, nil
+		case "CartScore":
+			return project.CartScore{}, nil
+		case "CartClassification":
+			values := inputType["values"].(map[string]interface{})
+			var localizedEnumValues []commercetools.LocalizedEnumValue
+			for key, label := range values {
+				newEnumValue := commercetools.LocalizedEnumValue{Key: key, Label: label.(map[string]string)}
+				localizedEnumValues = append(localizedEnumValues, newEnumValue)
+			}
+			return project.CartClassification{Values: localizedEnumValues}, nil
+		default:
+			return nil, fmt.Errorf("ShippingRateInputType %s not implemented", inputType["type"])
+		}
+	} else {
+		return nil, nil
+	}
 }
