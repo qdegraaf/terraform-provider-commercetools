@@ -15,6 +15,7 @@ const (
 	subSQS             = "SQS"
 	subSNS             = "SNS"
 	subAzureServiceBus = "azure_servicebus"
+	subAzureEventGrid  = "azure_eventgrid"
 	subGooglePubSub    = "google_pubsub"
 )
 
@@ -32,6 +33,10 @@ var destinationFields = map[string][]string{
 	},
 	subAzureServiceBus: {
 		"connection_string",
+	},
+	subAzureEventGrid: {
+		"uri",
+		"accesskey",
 	},
 	subGooglePubSub: {
 		"project_id",
@@ -87,7 +92,8 @@ func resourceSubscription() *schema.Resource {
 						"access_key": {
 							Type:             schema.TypeString,
 							Optional:         true,
-							DiffSuppressFunc: suppressIfNotDestinationType(subSQS, subSNS),
+							DiffSuppressFunc: suppressIfNotDestinationType(
+								subSQS, subSNS),
 						},
 						"access_secret": {
 							Type:             schema.TypeString,
@@ -102,6 +108,19 @@ func resourceSubscription() *schema.Resource {
 							Optional:         true,
 							ForceNew:         true,
 							DiffSuppressFunc: suppressIfNotDestinationType(subAzureServiceBus),
+						},
+
+						// Azure EventGrid
+						"uri": {
+							Type:             schema.TypeString,
+							Optional:         true,
+							DiffSuppressFunc: suppressIfNotDestinationType(subAzureEventGrid),
+						},
+						"accesskey": {
+							Type:             schema.TypeString,
+							Optional:         true,
+							ForceNew: 		  true,
+							DiffSuppressFunc: suppressIfNotDestinationType(subAzureEventGrid),
 						},
 
 						// Google Pub Sub
@@ -316,6 +335,11 @@ func resourceSubscriptionGetDestination(d *schema.ResourceData) (subscriptions.D
 	case subAzureServiceBus:
 		return subscriptions.DestinationAzureServiceBus{
 			ConnectionString: input["connection_string"].(string),
+		}, nil
+	case subAzureEventGrid:
+		return subscriptions.DestinationAzureEventGrid{
+			URI: input["uri"].(string),
+			AccessKey: input["accesskey"].(string),
 		}, nil
 	case subGooglePubSub:
 		return subscriptions.DestinationGooglePubSub{
