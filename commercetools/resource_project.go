@@ -55,7 +55,7 @@ func resourceProject() *schema.Resource {
 				},
 			},
 			"shipping_rate_input_type": {
-				Type:     schema.TypeMap,
+				Type:     schema.TypeSet,
 				Optional: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -63,9 +63,10 @@ func resourceProject() *schema.Resource {
 							Type:     schema.TypeString,
 							Optional: true,
 						},
-						"values": {
-							Type:     schema.TypeList,
+						"value": {
+							Type:     schema.TypeSet,
 							Required: true,
+							Set:      projectShippingRateValuesHash,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"key": {
@@ -75,6 +76,7 @@ func resourceProject() *schema.Resource {
 									"label": {
 										Type:     schema.TypeMap,
 										Required: true,
+										Set:      projectShippingRateValuesHash,
 									},
 								},
 							},
@@ -88,6 +90,10 @@ func resourceProject() *schema.Resource {
 			},
 		},
 	}
+}
+
+func projectShippingRateValuesHash(v interface{}) int {
+	return 10
 }
 
 func resourceProjectCreate(d *schema.ResourceData, m interface{}) error {
