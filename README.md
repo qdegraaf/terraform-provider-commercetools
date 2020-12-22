@@ -64,12 +64,18 @@ Enter the provider directory and build the provider
 $ cd $GOPATH/src/github.com/labd/terraform-provider-commercetools
 $ make build
 ```
-
-To then locally test:
-
+### Testing local changes
+As of terraform 0.13 testing local changes requires a little effort. 
+Build the copy with a version number higher than the most recent release (e.g. 99.0.0) :
 ```sh
-$ cp terraform-provider-commercetools ~/.terraform.d/plugins/darwin_amd64/terraform-provider-commercetools
+$ go build -o terraform-provider-commercetools_$(version)
 ```
+Then copy this version to (for Mac, for linux change `darwin_amd64` to `linux_amd64`)
+```sh
+$ cp terraform-provider-commercetools_$(version) ~/.terraform.d/plugins/registry.terraform.io/labd/commercetools/darwin_amd64/
+```
+If you set your provider source as `labd/commercetools` and the version to your built `version` it should use the local
+provider.
 
 ### Update commercetools-go-sdk
 
