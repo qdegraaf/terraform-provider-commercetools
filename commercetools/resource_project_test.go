@@ -39,7 +39,7 @@ func TestAccProjectCreate_basic(t *testing.T) {
 						"commercetools_project_settings.acctest_project_settings", "external_oauth.authorization_header", "Bearer secret",
 					),
 					resource.TestCheckResourceAttr(
-						"commercetools_project_settings.acctest_project_settings", "shipping_rate_input_type.type", "CartValue",
+						"commercetools_project_settings.acctest_project_settings", "shipping_rate_input_type", "CartValue",
 					),
 				),
 			},
@@ -68,10 +68,10 @@ func TestAccProjectCreate_basic(t *testing.T) {
 						"commercetools_project_settings.acctest_project_settings", "external_oauth.authorization_header", "Bearer new-secret",
 					),
 					resource.TestCheckResourceAttr(
-						"commercetools_project_settings.acctest_project_settings", "shipping_rate_input_type.type", "CartClassification",
+						"commercetools_project_settings.acctest_project_settings", "shipping_rate_input_type", "CartClassification",
 					),
 					resource.TestCheckResourceAttr(
-						"commercetools_project_settings.acctest_project_settings", "shipping_rate_input_type.values.#", "3",
+						"commercetools_project_settings.acctest_project_settings", "shipping_rate_cart_classification_values.#", "1",
 					),
 				),
 			},
@@ -100,10 +100,10 @@ func TestAccProjectCreate_basic(t *testing.T) {
 						"commercetools_project_settings.acctest_project_settings", "external_oauth.authorization_header",
 					),
 					resource.TestCheckResourceAttr(
-						"commercetools_project_settings.acctest_project_settings", "shipping_rate_input_type.type", "CartClassification",
+						"commercetools_project_settings.acctest_project_settings", "shipping_rate_input_type", "CartClassification",
 					),
 					resource.TestCheckResourceAttr(
-						"commercetools_project_settings.acctest_project_settings", "shipping_rate_input_type.values.#", "3",
+						"commercetools_project_settings.acctest_project_settings", "shipping_rate_cart_classification_values.#", "1",
 					),
 				),
 			},
@@ -129,9 +129,7 @@ func testAccProjectConfig() string {
 			messages = {
 			  enabled = true
 			}
-			shipping_rate_input_type = { 
-				type = "CartValue" 
-            }
+			shipping_rate_input_type = "CartValue"
 		}`
 }
 
@@ -149,32 +147,14 @@ func testAccProjectConfigUpdate() string {
 			messages = {
 			  enabled = false
 			}
-            shipping_rate_input_type = { 
-				type = "CartClassification"
-				values = [ 
-					{ 
-						key = "Small"
-						label = { 
-							"en" = "Small",
-							"de" = "Klein"
-						}
-					},
-					{ 
-						key = "Medium",
-						label = { 
-							"en" = "Medium",
-							"de" = "Mittel" 
-						} 	
-					},
-					{ 
-						key = "Heavy",
-						label = { 
-							"en" = "Heavy",
-							"de" = "Schwergut"
-						} 
-					},
-				]
-            }
+            shipping_rate_input_type = "CartClassification"
+			shipping_rate_cart_classification_values {
+				key = "Small"
+				label = {
+					"en" = "Small"
+					"nl" = "Klein"
+				}
+			}
 		}`
 }
 
@@ -188,31 +168,13 @@ func testAccProjectConfigDeleteOAuth() string {
 			messages = {
 			  enabled = false
 			}
-            shipping_rate_input_type = { 
-				type = "CartClassification"
-				values = [ 
-					{ 
-						key = "Small"
-						label = { 
-							"en" = "Small",
-							"de" = "Klein"
-						}
-					},
-					{ 
-						key = "Medium",
-						label = { 
-							"en" = "Medium",
-							"de" = "Mittel" 
-						} 
-					},
-					{ 
-						key = "Heavy",
-						label = { 
-							"en" = "Heavy",
-							"de" = "Schwergut"
-						} 
-					},
-				]
-            }
+			shipping_rate_input_type = "CartClassification"
+			shipping_rate_cart_classification_values {
+				key = "Small"
+				label = {
+					"en" = "Small"
+					"nl" = "Klein"
+				}
+			}
 		}`
 }
